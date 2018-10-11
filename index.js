@@ -5,6 +5,9 @@ const logger = require('morgan')
 const validateParams = require('./util/validateParams.js')
 const queries = require('./database/queries.js')
 const user = require('./database/insertions.js')
+const mongoose = require('mongoose')
+const config = require('../config/config.js')
+const base64 = require('base-64')
 
 /* Our App! */
 const app = express()
@@ -31,11 +34,16 @@ app.post('/register', function (req, res) {
     .then(function (params) {
       // Check if Email exists already or not
       req.body = params
+      mongoose.connect(config.MongoURL, { useNewUrlParser: true })
       return queries.checkEmailValidity(params.Email)
     })
-    .then(function () {
+    .then(function (result) {
       // Write User Details to Database
-      return user.signup(req.body)
+      if (result === null || result === []) {
+        return user.signup(req.body)
+      } else {
+        throw new Error('User already exists : ' + result.Email)
+      }
     })
     .then(function () {
       // Send Successful Response
@@ -47,6 +55,9 @@ app.post('/register', function (req, res) {
         'Error': error
       })
     })
+    .finally(function () {
+      mongoose.connection.close()
+    })
 })
 
 // Login
@@ -56,6 +67,7 @@ app.post('/login', function (req, res) {
     .then(function (params) {
       // Check if Email and Password are correct or not
       req.body = params
+      mongoose.connect(config.MongoURL, { useNewUrlParser: true })
       return queries.checkLoginValidity(params.Email, params.Password)
     })
     .then(function () {
@@ -67,6 +79,9 @@ app.post('/login', function (req, res) {
         'Error': error
       })
     })
+    .finally(function () {
+      mongoose.connection.close()
+    })
 })
 
 // Forgot Password
@@ -75,10 +90,18 @@ app.post('/forgot', function (req, res) {
   validateParams(req.body, 'forgot')
     .then(function (params) {
       // Check if Email exists already or not
+      req.body = params
+      mongoose.connect(config.MongoURL, { useNewUrlParser: true })
       return queries.checkEmailValidity(params.Email)
     })
-    .then(function () {
+    .then(function (result) {
       // Generate a New Password and Update it in Database
+      if (result !== null || result !== []) {
+        var newPassword = base64.encode(req.body.Email + (Date.now()).toString())
+        return user.updatePassword(result.Email, newPassword)
+      } else {
+        throw new Error('User does not exist : ' + result.Email)
+      }
     })
     .then(function () {
       // Send Email
@@ -88,6 +111,9 @@ app.post('/forgot', function (req, res) {
       res.status(403).send({
         'Error': error
       })
+    })
+    .finally(function () {
+      mongoose.connection.close()
     })
 })
 
