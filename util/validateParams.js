@@ -2,15 +2,15 @@
   Utility Class
 */
 
-// Import Data Structure Models
-var loginModel = require('../models/login.js')
-var registerModel = require('../models/register.js')
-var forgotPasswordModel = require('../models/forgot.js')
+// Import Data Structure Payloads
+var loginPayload = require('../models/login.js')
+var registerPayload = require('../models/register.js')
+var forgotPasswordPayload = require('../models/forgot.js')
 
 function validateParams (body, type) {
   if (type === 'login') {
     return new Promise(function (resolve, reject) {
-      var payload = loginModel.generatePayload(body)
+      var payload = loginPayload(body)
       if (typeof payload === 'object') {
         resolve(payload)
       } else {
@@ -20,7 +20,7 @@ function validateParams (body, type) {
   }
   if (type === 'register') {
     return new Promise(function (resolve, reject) {
-      var payload = registerModel.generatePayload(body)
+      var payload = registerPayload(body)
       if (typeof payload === 'object') {
         resolve(payload)
       } else {
@@ -30,7 +30,7 @@ function validateParams (body, type) {
   }
   if (type === 'forgot') {
     return new Promise(function (resolve, reject) {
-      var payload = forgotPasswordModel.generatePayload(body)
+      var payload = forgotPasswordPayload(body)
       if (typeof payload === 'object') {
         resolve(payload)
       } else {
