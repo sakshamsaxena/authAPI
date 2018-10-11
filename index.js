@@ -2,7 +2,9 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const logger = require('morgan')
-const util = require('./util')
+const validator = require('./util/validateParams.js')
+const queries = require('./mappers/queries.js')
+const mappers = require('./mappers/insertions.js')
 
 /* Our App! */
 const app = express()
@@ -24,13 +26,19 @@ app.use(function (req, res, next) {
 
 // Application Routes
 app.post('/register', function (req, res) {
-  util.validateParams(req.body, 'register')
-    .then(function () {
+  validator.validateParams(req.body, 'register')
+    .then(function (params) {
       // params are valid, check email existence
-      return checkEmailValidity(req.body.email)
+      req.body = params
+      return queries.checkEmailValidity(params.Email)
     })
     .then(function () {
       // everything is okay, commit to db
+      return mappers.signup(req.body)
+    })
+    .then(function () {
+      // send response
+      res.status(201).send()
     })
     .catch(function (error) {
       // invalid params (400) or email exists (409)
@@ -38,10 +46,11 @@ app.post('/register', function (req, res) {
     })
 })
 app.post('/login', function (req, res) {
-  util.validateParams(req.body, 'login')
-    .then(function () {
+  validator.validateParams(req.body, 'login')
+    .then(function (params) {
       // params are valid, check email and password
-      return checkEmailPasswordValidity(req.body.email)
+      req.body = params
+      return queries.checkLoginValidity(params.Email, params.Password)
     })
     .then(function () {
       // pair exists and is correct, return a jwt with email&pass
@@ -52,13 +61,16 @@ app.post('/login', function (req, res) {
     })
 })
 app.post('/forgot', function (req, res) {
-  util.validateParams(req.body, 'forgot')
-    .then(function () {
+  validator.validateParams(req.body, 'forgot')
+    .then(function (params) {
       // email is valid, reset password
-      return resetPassword(req.body.email)
+      return queries.checkEmailValidity(params.Email)
     })
     .then(function () {
-      // password generated, send email
+      // email exists, generate password
+    })
+    .then(function () {
+      // password generated, update password and send email
     })
     .catch(function (error) {
       // invalid email or failed to make password
@@ -69,8 +81,7 @@ app.post('/forgot', function (req, res) {
 // Render any other route than the ones defined anywhere in app as HTTP 404
 app.use(function (req, res) {
   res.status(404).send({
-    Message: 'Invalid Request',
-    DocsURL: 'DocsURL'
+    Message: 'Invalid Request'
   })
 })
 

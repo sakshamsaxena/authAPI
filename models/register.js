@@ -26,6 +26,7 @@ function generatePayload (body) {
   } else {
     return 'Invalid Password'
   }
+  return model
 }
 
 module.exports = generatePayload

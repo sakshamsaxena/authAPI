@@ -14,6 +14,7 @@ function generatePayload (body) {
   } else {
     return 'Invalid Email'
   }
+  return model
 }
 
 module.exports = generatePayload
