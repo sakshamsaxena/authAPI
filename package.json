@@ -4,7 +4,8 @@
   "description": "A simple authentication layer built in Node.js using Express",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "start": "npx nodemon"
   },
   "repository": {
     "type": "git",

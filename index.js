@@ -6,8 +6,9 @@ const validateParams = require('./util/validateParams.js')
 const queries = require('./database/queries.js')
 const user = require('./database/insertions.js')
 const mongoose = require('mongoose')
-const config = require('../config/config.js')
+const config = require('./config/config.js')
 const base64 = require('base-64')
+const jwt = require('jsonwebtoken')
 
 /* Our App! */
 const app = express()
@@ -70,8 +71,12 @@ app.post('/login', function (req, res) {
       mongoose.connect(config.MongoURL, { useNewUrlParser: true })
       return queries.checkLoginValidity(params.Email, params.Password)
     })
-    .then(function () {
+    .then(function (result) {
       // Create a JWT with Email and Password, and send it in Response
+      var token = jwt.sign({ Email: result.Email, Password: result.Password }, config.MasterSecret)
+      res.status(200).send({
+        'Token': token
+      })
     })
     .catch(function (error) {
       // Invalid Params or Wrong Credentials
@@ -103,8 +108,12 @@ app.post('/forgot', function (req, res) {
         throw new Error('User does not exist : ' + result.Email)
       }
     })
-    .then(function () {
-      // Send Email
+    .then(function (result) {
+      // TODO: Send Email
+      console.log(result.Password)
+      res.status(200).send({
+        Message: 'Check Email'
+      })
     })
     .catch(function (error) {
       // Invalid Email, Database Failure, or Email Failure

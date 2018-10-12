@@ -4,7 +4,7 @@
 
 const config = {
   'MongoURL': 'mongodb://localhost:27017/auth',
-  'MasterSecret': ''
+  'MasterSecret': 'MySecretKey'
 }
 
 module.exports = config
